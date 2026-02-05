@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Unique Number Shuffler</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    transition: background 0.8s ease; /* smooth color change */
+  }
+
+  .container {
+    background: #020617;
+    padding: 20px;
+    border-radius: 10px;
+    width: 360px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+  label {
+    font-size: 14px;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px;
+    margin: 6px 0 12px;
+    border-radius: 5px;
+    border: none;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    background: #38bdf8;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #0ea5e9;
+  }
+
+  textarea {
+    width: 100%;
+    height: 120px;
+    margin-top: 12px;
+    border-radius: 5px;
+    padding: 10px;
+    resize: none;
+    font-size: 14px;
+  }
+
+  .note {
+    font-size: 12px;
+    margin-top: 8px;
+    opacity: 0.7;
+    text-align: center;
+  }
+
+  p {
+    font-size: 13px;
+    margin: 4px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Unique Shuffle Generator</h2>
+
+  <label>Start Number</label>
+  <input type="number" id="start" value="">
+
+  <label>End Number</label>
+  <input type="number" id="end" value="">
+
+  <button onclick="shuffleNumbers()">Shuffle</button>
+
+  <textarea id="output" readonly placeholder="Shuffled sequence will appear here..."></textarea>
+
+  <p>Total possible sequences: <span id="totalSeq">-</span></p>
+  <p>Time to finish (1 sec per sequence): <span id="timeNeeded">-</span></p>
+
+  <div class="note">
+    Unique per session (small ranges recommended)
+  </div>
+</div>
+
+<script>
+  const usedSequences = new Set();
+
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function factorialBig(n) {
+    let result = 1n;
+    for (let i = 2n; i <= n; i++) {
+      result *= i;
+    }
+    return result;
+  }
+
+  function formatTime(seconds) {
+    let sec = BigInt(seconds);
+    const minute = 60n;
+    const hour = 3600n;
+    const day = 86400n;
+    const year = 31536000n;
+
+    const y = sec / year; sec %= year;
+    const d = sec / day; sec %= day;
+    const h = sec / hour; sec %= hour;
+    const m = sec / minute; sec %= minute;
+    const s = sec;
+
+    return `${y}y ${d}d ${h}h ${m}m ${s}s`;
+  }
+
+  function getRandomColor() {
+    const r = Math.floor(Math.random() * 156 + 100);
+    const g = Math.floor(Math.random() * 156 + 100);
+    const b = Math.floor(Math.random() * 156 + 100);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  function shuffleNumbers() {
+    const start = parseInt(document.getElementById("start").value);
+    const end = parseInt(document.getElementById("end").value);
+
+    if (start >= end) {
+      alert("Start number must be less than end number.");
+      return;
+    }
+
+    const numbers = [];
+    for (let i = start; i <= end; i++) numbers.push(i);
+
+    // Total sequences calculation
+    const totalSeq = factorialBig(BigInt(numbers.length));
+    document.getElementById("totalSeq").textContent = totalSeq.toString();
+
+    // Time calculation
+    const timeString = formatTime(totalSeq);
+    document.getElementById("timeNeeded").textContent = timeString;
+
+    // Shuffle
+    let attempt = 0;
+    let shuffled;
+    do {
+      shuffled = shuffleArray([...numbers]).join(", ");
+      attempt++;
+      if (attempt > 1000) {
+        alert("Too many shuffles! Unique sequences exhausted or too large.");
+        return;
+      }
+    } while (usedSequences.has(shuffled));
+
+    usedSequences.add(shuffled);
+    document.getElementById("output").value = shuffled;
+
+    // Change background color on every shuffle
+    document.body.style.background = getRandomColor();
+  }
+</script>
+
+</body>
+</html>
